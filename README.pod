@@ -1,0 +1,57 @@
+=pod
+
+=head1 NAME
+
+ cpanel-dnsupdater.pl
+
+=head1 VERSION
+
+ 0.7
+
+=head1 USAGE
+
+ cpanel-dnsupdater.pl [options]
+
+ Example:
+ cpanel-dnsupdater.pl --host home --domain domain.tld --cpanel_user cptest --cpanel_pass 12345 --cpanel_domain cptest.tld --check_host 8.8.8.8
+
+=head1 DESCRIPTION
+
+ Updates the IP address of an A record on a cPanel hosted domain. If no email address is supplied to the script, then all output is printed to STDOUT instead of emailed.
+
+=head1 ARGUMENTS
+
+=head2  Required
+
+  --host          Host name to update in the domain's zonefile. eg. 'www'
+  --domain        Name of the domain to update
+  --cpanel_user   cPanel account login name
+  --cpanel_pass   cPanel account password
+  --cpanel_domain cPanel account domain name
+  --check_host    IP address of host to check for connectivity. eg. 8.8.8.8 or your DNS resolver
+
+=head2  Optional
+
+  --ip              IP address to update the A record with. This defaults to the detected external IP.
+  --email_auth_user Email address for SMTP Auth
+  --email_auth_pass Password for SMTP Auth (use \ to escape characters)
+  --email_addr      Email address to send successful/error report to (defaults to email_auth_user)
+  --outbound_server Server to send mail through
+  --smtp_port       SMTP port to connect to, the default is 587 but 465 for SSL and 25 are supported as well
+  --helo            Change the HELO that is sent to the outbound server, this setting defaults to the current hostname
+
+
+=head1 EXIT STATUS
+
+ Exits with 1 if there was any issue updating the record. Exits with 0 if IP was either changed, or the pulled IP matches the specified IP.
+
+=head1 AUTHOR
+
+ Paul Trost <paul.trost@trostfamily.org>
+ Original code by Stefan Gofferje - http://stefan.gofferje.net/
+
+=head1 LICENSE AND COPYRIGHT
+
+ Copyright 2012, 2013, 2014, 2015.
+ This script is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License v2, or at your option any later version.
+ <http://gnu.org/licenses/gpl.html>
