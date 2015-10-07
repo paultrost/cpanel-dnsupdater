@@ -230,7 +230,7 @@ sub get_external_ip {
         chomp $ip;
         if ( !$ip ) {
             $error++;
-            output("Couldn't detect remote IP, please check the URL $url.\n");
+            output("Couldn't connect to $url, it may be unresponsive or not work amymore.\n");
             exit(1);
         }
     }
@@ -248,7 +248,7 @@ sub get_external_ip {
 
 =head1 VERSION
 
- 0.8
+ 0.8.1
 
 =cut
 
