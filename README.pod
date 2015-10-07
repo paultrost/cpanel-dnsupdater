@@ -6,7 +6,7 @@
 
 =head1 VERSION
 
- 0.7
+ 0.8
 
 =head1 USAGE
 
@@ -17,7 +17,7 @@
 
 =head1 DESCRIPTION
 
- Updates the IP address of an A record on a cPanel hosted domain. If no email address is supplied to the script, then all output is printed to STDOUT instead of emailed.
+ Updates the IP address of an A record on a cPanel hosted domain. If no email address is supplied to the script, then all output is printed to STDOUT instead of emailed. Instead of passing options on the command line, a configuration file at ~/.cpaneldyndns can be used with the format of 'option=value', eg: domain=mydomain.com.
 
 =head1 ARGUMENTS
 
@@ -37,13 +37,12 @@
   --email_auth_pass Password for SMTP Auth (use \ to escape characters)
   --email_addr      Email address to send successful/error report to (defaults to email_auth_user)
   --outbound_server Server to send mail through
-  --smtp_port       SMTP port to connect to, the default is 587 but 465 for SSL and 25 are supported as well
   --helo            Change the HELO that is sent to the outbound server, this setting defaults to the current hostname
 
 
 =head1 EXIT STATUS
 
- Exits with 1 if there was any issue updating the record. Exits with 0 if IP was either changed, or the pulled IP matches the specified IP.
+ Exits with 1 if there was any issue updating the record, 255 if the end of script was reached in error, and 0 if IP was either changed, or the detected IP matches the given IP.
 
 =head1 AUTHOR
 
