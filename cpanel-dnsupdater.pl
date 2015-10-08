@@ -138,7 +138,7 @@ sub send_email {
         SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_NONE,
       ) or die "Could not connect to $opts{'outbound_server'}\n$@\n";
 
-    $smtp->auth( $opts{'email_auth_user'}, $opts{'email_auth_pass'} );
+    $smtp->auth( $opts{'email_auth_user'}, $opts{'email_auth_pass'} ) or die "Couldn't send email: ", $smtp->message();
     $smtp->mail( $opts{'email_auth_user'} );
     $smtp->to( $opts{'email_addr'} ) or die "Couldn't send email: ", $smtp->message();
     $smtp->data();
