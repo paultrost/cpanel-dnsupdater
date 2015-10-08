@@ -14,6 +14,7 @@ use Sys::Hostname;
 use IO::Socket::SSL qw( SSL_VERIFY_NONE );
 use Net::SMTPS;
 use Net::Ping::External qw(ping);
+use Data::Validate::IP;
 
 #-------------------------------------------------------------------------------
 #  Parse options
@@ -65,7 +66,7 @@ GetOptions(
 
 pod2usage(1) if $opts{'help'};
 
-die "Required parameters not specified\n"
+die "Required parameters not specified or no configuration file found. Run '$0 --help' for instructions.\n"
   unless $opts{'domain'}
   and $opts{'host'}
   and $opts{'cpanel_user'}
@@ -79,7 +80,16 @@ $opts{'$email_addr'} ||= $opts{'email_auth_user'};
 my $send_email = ( $opts{'email_addr'} ) ? 1 : 0;
 
 #-------------------------------------------------------------------------------
-#  Set user account parameters, should probably be moved to a config file
+#  Validate user input
+#-------------------------------------------------------------------------------
+
+my $validator = Data::Validate::IP->new;
+if ( $opts{'ip'} && !$validator->is_ipv4( $opts{'ip'} ) ) {
+    die "Specified IP address '$opts{'ip'}' doesn't look like an IPv4 address.\n";
+}
+
+#-------------------------------------------------------------------------------
+#  Set user account parameters
 #-------------------------------------------------------------------------------
 my $auth = 'Basic ' . MIME::Base64::encode( $opts{'cpanel_user'} . ':' . $opts{'cpanel_pass'} );
 
@@ -108,6 +118,7 @@ if ( $result eq 'succeeded' ) {
     exit(0);
 }
 else {
+    $error = 1;
     output("Update not successful, $result\n");
     exit(1);
 }
@@ -167,6 +178,7 @@ sub get_zone_data {
     my $zone;
     $zone = eval { $xml->XMLin($response->content) };
     if ( !defined $zone ) {
+        $error = 1;
         output(
             "Couldn't connect to '$opts{'cpanel_domain'}' to fetch zone contents for $domain\nPlease ensure '$opts{'cpanel_domain'}', '$opts{'cpanel_user'}', and '$opts{'cpanel_pass'}' are set correctly.\n"
         );
@@ -227,9 +239,12 @@ sub get_external_ip {
     my $ip;
     if ( !defined $opts{'ip'} ) {
         $ip = get($url);
+        if ( !$validator->is_ipv4($ip) ) {
+            die "'$url' didn't return an IP address:\n" . "$ip\n";
+        }
         chomp $ip;
         if ( !$ip ) {
-            $error++;
+            $error = 1;
             output("Couldn't connect to $url, it may be unresponsive or not work amymore.\n");
             exit(1);
         }
@@ -248,7 +263,7 @@ sub get_external_ip {
 
 =head1 VERSION
 
- 0.8.1
+ 0.8.2
 
 =cut
 
@@ -263,7 +278,7 @@ sub get_external_ip {
 
 =head1 DESCRIPTION
 
- Updates the IP address of an A record on a cPanel hosted domain. If no email address is supplied to the script, then all output is printed to STDOUT instead of emailed. Instead of passing options on the command line, a configuration file at ~/.cpaneldyndns can be used with the format of 'option=value', eg: domain=mydomain.com.
+ Updates the IP address of an A record on a cPanel hosted domain. If no email address is supplied to the script, then all output is printed to STDOUT instead of emailed.
 
 =cut
 
@@ -287,6 +302,13 @@ sub get_external_ip {
   --outbound_server Server to send mail through
   --helo            Change the HELO that is sent to the outbound server, this setting defaults to the current hostname
 
+=head2 Using a Config File (.cpaneldyndns)
+
+    Instead of passing options on the command line, a configuration file in your home directory can be used.
+    Any options specified on the command line will override the configuration file options.
+    This file has to be called .cpaneldyndns, and the file takes the format of 'option=value', eg:
+    host=home
+    domain=mydomain.com
 
 =cut
 
