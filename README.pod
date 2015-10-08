@@ -17,7 +17,9 @@
 
 =head1 DESCRIPTION
 
- Updates the IP address of an A record on a cPanel hosted domain. If no email address is supplied to the script, then all output is printed to STDOUT instead of emailed.
+ This script is useful for updating the IP address of an A record on a cPanel hosted domain with either a supplied IP, or a detected IP. This allows you to use your own cPanel domain for dynamic DNS instead of having to use a third party DNS service. 
+ 
+ If your specify email address parameters, then script output is emailed to you, otherwise all output is printed to STDOUT.
 
 =head1 ARGUMENTS
 
