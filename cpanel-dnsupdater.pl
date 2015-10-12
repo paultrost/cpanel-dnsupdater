@@ -320,7 +320,7 @@ sub get_external_ip {
 
 =head1 AUTHOR
 
- Paul Trost <paul.trost@trostfamily.org>
+ Paul Trost <ptrost@cpanel.org>
  Original code by Stefan Gofferje - http://stefan.gofferje.net/
 
 =cut
