@@ -24,22 +24,8 @@ use Data::Validate::IP;
 
 my $error;
 my $homedir = ( getpwuid($>) )[7];
-my $config_file = '.cpaneldyndns';
+my $config_file = "$homedir/.cpaneldyndns";
 my %opts = ( 'helo' => hostname(), );
-
-if ( -e "$homedir/$config_file" ) {  
-    open( my $cf_fh, "<", "$homedir/$config_file" )
-      or warn "could not open ~/$config_file";
-  LINE:
-    while ( my $cf_line = <$cf_fh> ) {    # read each line
-        chomp $cf_line;
-        next LINE if $cf_line eq '' || $cf_line =~ /^#/;
-        my ( $key, $value ) = split( /=/, $cf_line );    # split based on = to the key and value
-        $opts{$key} = $value;
-    }
-    close($cf_fh);
-}
-
 
 GetOptions(
     \%opts,
@@ -62,7 +48,23 @@ GetOptions(
 
     # IP for outbound connection check
     'check_host=s' => \$opts{'check_host'},
+    
+    # Location of the configuration file
+    'config_file=s' => \$config_file
 );
+
+if ( -e "$config_file" ) {  
+    open( my $cf_fh, "<", "$config_file" )
+      or warn "could not open $config_file";
+  LINE:
+    while ( my $cf_line = <$cf_fh> ) {    # read each line
+        chomp $cf_line;
+        next LINE if $cf_line eq '' || $cf_line =~ /^#/;
+        my ( $key, $value ) = split( /=/, $cf_line );    # split based on = to the key and value
+        $opts{$key} = $value;
+    }
+    close($cf_fh);
+}
 
 pod2usage(1) if $opts{'help'};
 
@@ -303,14 +305,17 @@ sub get_external_ip {
   --email_addr      Email address to send successful/error report to (defaults to email_auth_user)
   --outbound_server Server to send mail through
   --helo            Change the HELO that is sent to the outbound server, this setting defaults to the current hostname
+  --config_file     Specify the location of a configuration file (defaults to ~/.cpaneldyndns)
 
-=head2 Using a Config File (.cpaneldyndns)
+=head2 Using a Config File (~/.cpaneldyndns)
 
-    Instead of passing options on the command line, a configuration file in your home directory can be used.
-    Any options specified on the command line will override the configuration file options.
-    This file has to be called .cpaneldyndns, and the file takes the format of 'option=value', eg:
+    Instead of passing options on the command line, a configuration file can be used.
+    Any options specified on the command line will be overriden by the configuration file options.
+    The file takes the format of 'option=value', eg:
     host=home
     domain=mydomain.com
+    
+    The default location of the file is in the home directory of the current user and the default filename is '.cpaneldyndns'
 
 =cut
 
