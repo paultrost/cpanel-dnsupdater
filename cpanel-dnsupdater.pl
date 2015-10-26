@@ -23,9 +23,9 @@ use Data::Validate::IP;
 #pod2usage(1) if !@ARGV;
 
 my $error;
-my $homedir = ( getpwuid($>) )[7];
+my $homedir     = ( getpwuid($>) )[7];
 my $config_file = "$homedir/.cpaneldyndns";
-my %opts = ( 'helo' => hostname(), );
+my %opts        = ( 'helo' => hostname(), );
 
 GetOptions(
     \%opts,
@@ -48,12 +48,12 @@ GetOptions(
 
     # IP for outbound connection check
     'check_host=s' => \$opts{'check_host'},
-    
+
     # Location of the configuration file
     'config_file=s' => \$config_file
 ) or die "Invalid options passed to $0\n";
 
-if ( -e "$config_file" ) {  
+if ( -e $config_file ) {
     open( my $cf_fh, "<", $config_file )
       or warn "could not open $config_file";
   LINE:
@@ -77,7 +77,7 @@ die "Required parameters not specified or no configuration file found. Run '$0 -
   and $opts{'check_host'};
 
 # Set default $email_addr
-$opts{'$email_addr'} ||= $opts{'email_auth_user'}; 
+$opts{'$email_addr'} ||= $opts{'email_auth_user'};
 
 # Use email for output instead of STDOUT if email parameters specified
 my $send_email = ( $opts{'email_addr'} ) ? 1 : 0;
@@ -111,9 +111,10 @@ my $external_ip = $opts{'ip'} || get_external_ip();
 # Get current host IP address and see if it matches the given IP
 my ( $current_ip_line, $current_ip ) = get_zone_data( $opts{'domain'}, $opts{'host'} );
 if ( $current_ip eq $external_ip ) {
-    #print "Detected remote IP $external_ip matches current IP $current_ip; no IP update needed.\n";
+    #Detected remote IP $external_ip matches current IP $current_ip; no IP update needed.
     exit(0);
 }
+
 #print "Trying to update $opts{'host'} IP to $external_ip ...\n";
 my $result = set_host_ip( $opts{'domain'}, $current_ip_line, $external_ip );
 if ( $result eq 'succeeded' ) {
@@ -128,17 +129,15 @@ else {
 
 exit(255);    #if we get here, something bad happened
 
-
-
-
 sub output {
     my ($status_msg) = @_;
+    die "No status message supplied\n" if !$status_msg;
     return ($send_email) ? send_email($status_msg) : print $status_msg;
 }
 
 sub send_email {
     my ($body_text) = @_;
-    my $success_subject = "Updated IP address for " .  "$opts{'host'}.$opts{'domain'}";
+    my $success_subject = "Updated IP address for " . "$opts{'host'}.$opts{'domain'}";
     my $subject = $error ? "Issue detected when running" : $success_subject;
 
     # If the SMTP transaction is failing, add 'Debug => 1,' to the method below
@@ -150,11 +149,13 @@ sub send_email {
         Timeout         => 20,
         doSSL           => 'starttls',
         SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_NONE,
-      ) or die "Could not connect to $opts{'outbound_server'}\n$@\n";
+    ) or die "Could not connect to $opts{'outbound_server'}\n$@\n";
 
-    $smtp->auth( $opts{'email_auth_user'}, $opts{'email_auth_pass'} ) or die "Couldn't send email: ", $smtp->message();
+    $smtp->auth( $opts{'email_auth_user'}, $opts{'email_auth_pass'} )
+      or die "Couldn't send email: ", $smtp->message();
     $smtp->mail( $opts{'email_auth_user'} );
-    $smtp->to( $opts{'email_addr'} ) or die "Couldn't send email: ", $smtp->message();
+    $smtp->to( $opts{'email_addr'} )
+      or die "Couldn't send email: ", $smtp->message();
     $smtp->data();
     $smtp->datasend("From: $opts{'email_auth_user'}\n");
     $smtp->datasend("To: $opts{'email_addr'}\n");
@@ -171,7 +172,7 @@ sub get_zone_data {
     my ( $domain, $hostname ) = @_;
     $hostname .= ".$domain.";
 
-    my $xml     = XML::Simple->new;
+    my $xml = XML::Simple->new;
     my $request =
       HTTP::Request->new( GET =>
 "https://$opts{'cpanel_domain'}:2083/xml-api/cpanel?cpanel_xmlapi_module=ZoneEdit&cpanel_xmlapi_func=fetchzone&domain=$domain"
@@ -179,13 +180,14 @@ sub get_zone_data {
     $request->header( Authorization => $auth );
     my $response = $ua->request($request);
     my $zone;
-    $zone = eval { $xml->XMLin($response->content) };
+    $zone = eval { $xml->XMLin( $response->content ) };
+
     if ( !defined $zone ) {
         $error = 1;
         output(
-            "Couldn't connect to '$opts{'cpanel_domain'}' to fetch zone contents for $domain\nPlease ensure '$opts{'cpanel_domain'}', '$opts{'cpanel_user'}', and '$opts{'cpanel_pass'}' are set correctly.\n"
+"Couldn't connect to '$opts{'cpanel_domain'}' to fetch zone contents for $domain\nPlease ensure '$opts{'cpanel_domain'}', '$opts{'cpanel_user'}', and '$opts{'cpanel_pass'}' are set correctly.\n"
         );
-	output($response->content);
+        output( $response->content );
         exit(1);
     }
 
@@ -197,7 +199,8 @@ sub get_zone_data {
         while ( $item <= $count ) {
             my $name = $zone->{'data'}->{'record'}[$item]->{'name'};
             my $type = $zone->{'data'}->{'record'}[$item]->{'type'};
-            if ( ( defined($name) && $name eq $hostname ) && ( $type eq 'A' ) ) {
+            if ( ( defined($name) && $name eq $hostname ) && ( $type eq 'A' ) )
+            {
                 $record_number = $zone->{'data'}->{'record'}[$item]->{'Line'};
                 $address = $zone->{'data'}->{'record'}[$item]->{'address'};
                 $found_hostname = 1;
@@ -214,14 +217,14 @@ sub get_zone_data {
         output("No A record present for $hostname, please verify it exists in the cPanel zonefile!\n");
         exit(1);
     }
-
     return ( $record_number, $address );
 }
 
 sub set_host_ip {
     my ( $domain, $line_number, $newip ) = @_;
-    my $xml     = XML::Simple->new;
-    my $request = HTTP::Request->new( GET =>
+    my $xml = XML::Simple->new;
+    my $request =
+      HTTP::Request->new( GET =>
 "https://$opts{'cpanel_domain'}:2083/xml-api/cpanel?cpanel_xmlapi_module=ZoneEdit&cpanel_xmlapi_func=edit_zone_record&domain=$domain&line=$line_number&address=$newip"
       );
     $request->header( Authorization => $auth );
@@ -232,6 +235,7 @@ sub set_host_ip {
 }
 
 sub get_external_ip {
+
     #check for connectivity
     #no need to run any further if connection out is dead
     my $alive = ping( 'host' => $opts{'check_host'} );
@@ -248,13 +252,14 @@ sub get_external_ip {
         chomp $ip;
         if ( !$ip ) {
             $error = 1;
-            output("Couldn't connect to $url, it may be unresponsive or not work amymore.\n");
+            output(
+"Couldn't connect to $url, it may be unresponsive or not work amymore.\n"
+            );
             exit(1);
         }
     }
     return $ip;
 }
-
 
 =pod
 
@@ -266,7 +271,7 @@ sub get_external_ip {
 
 =head1 VERSION
 
- 0.8.4
+ 0.8.6
 
 =cut
 
