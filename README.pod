@@ -6,7 +6,7 @@
 
 =head1 VERSION
 
- 0.8.3
+ 0.8.4
 
 =head1 USAGE
 
@@ -40,17 +40,17 @@
   --email_addr      Email address to send successful/error report to (defaults to email_auth_user)
   --outbound_server Server to send mail through
   --helo            Change the HELO that is sent to the outbound server, this setting defaults to the current hostname
-  --config_file    Specify the location of the configuration file (defaults to ~/.cpaneldyndns)
+  --config_file     Specify the location of a configuration file (defaults to ~/.cpaneldyndns)
 
 =head2 Using a Config File (~/.cpaneldyndns)
 
     Instead of passing options on the command line, a configuration file can be used.
-    Any options specified on the command line will ben override the configuration file options.
+    Any options specified on the command line will be overriden by the configuration file options.
     The file takes the format of 'option=value', eg:
     host=home
     domain=mydomain.com
     
-    The default location of the configuration file is in the home folder of the current user and the default filename is '.cpaneldyndns'
+    The default location of the file is in the home directory of the current user and the default filename is '.cpaneldyndns'
 
 =head1 EXIT STATUS
 
@@ -58,7 +58,7 @@
 
 =head1 AUTHOR
 
- Paul Trost <paul.trost@trostfamily.org>
+ Paul Trost <ptrost@cpanel.org>
  Original code by Stefan Gofferje - http://stefan.gofferje.net/
 
 =head1 LICENSE AND COPYRIGHT

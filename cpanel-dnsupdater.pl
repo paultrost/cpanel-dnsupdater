@@ -51,16 +51,16 @@ GetOptions(
     
     # Location of the configuration file
     'config_file=s' => \$config_file
-);
+) or die "Invalid options passed to $0\n";
 
 if ( -e "$config_file" ) {  
-    open( my $cf_fh, "<", "$config_file" )
+    open( my $cf_fh, "<", $config_file )
       or warn "could not open $config_file";
   LINE:
     while ( my $cf_line = <$cf_fh> ) {    # read each line
         chomp $cf_line;
         next LINE if $cf_line eq '' || $cf_line =~ /^#/;
-        my ( $key, $value ) = split( /=/, $cf_line );    # split based on = to the key and value
+        my ( $key, $value ) = split( /=/, $cf_line );
         $opts{$key} = $value;
     }
     close($cf_fh);
@@ -76,6 +76,7 @@ die "Required parameters not specified or no configuration file found. Run '$0 -
   and $opts{'cpanel_domain'}
   and $opts{'check_host'};
 
+# Set default $email_addr
 $opts{'$email_addr'} ||= $opts{'email_auth_user'}; 
 
 # Use email for output instead of STDOUT if email parameters specified
@@ -131,12 +132,12 @@ exit(255);    #if we get here, something bad happened
 
 
 sub output {
-    my $status_msg = shift;
+    my ($status_msg) = @_;
     return ($send_email) ? send_email($status_msg) : print $status_msg;
 }
 
 sub send_email {
-    my $body_text   = shift;
+    my ($body_text) = @_;
     my $success_subject = "Updated IP address for " .  "$opts{'host'}.$opts{'domain'}";
     my $subject = $error ? "Issue detected when running" : $success_subject;
 
@@ -265,7 +266,7 @@ sub get_external_ip {
 
 =head1 VERSION
 
- 0.8.2
+ 0.8.4
 
 =cut
 
