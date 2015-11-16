@@ -1,0 +1,5 @@
+Revision history for cpanel-dnsupdater.pl
+
+0.87	2015-11-16
+	Added end of world warning before exit 255	
+	Changed output msg after failed API connect to not include cPanel account information
