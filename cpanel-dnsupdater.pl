@@ -127,7 +127,8 @@ else {
     exit(1);
 }
 
-exit(255);    #if we get here, something bad happened
+print "Reached end of script, something bad happened\n";
+exit(255); 
 
 sub output {
     my ($status_msg) = @_;
@@ -185,7 +186,7 @@ sub get_zone_data {
     if ( !defined $zone ) {
         $error = 1;
         output(
-"Couldn't connect to '$opts{'cpanel_domain'}' to fetch zone contents for $domain\nPlease ensure '$opts{'cpanel_domain'}', '$opts{'cpanel_user'}', and '$opts{'cpanel_pass'}' are set correctly.\n"
+"Couldn't connect to '$opts{'cpanel_domain'}' to fetch zone contents for $domain\nPlease ensure 'cpanel_domain', 'cpanel_user', and 'cpanel_pass' are set correctly.\n"
         );
         output( $response->content );
         exit(1);
@@ -271,7 +272,7 @@ sub get_external_ip {
 
 =head1 VERSION
 
- 0.8.6
+ 0.8.7
 
 =cut
 
