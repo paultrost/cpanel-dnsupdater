@@ -150,13 +150,13 @@ sub send_email {
         Timeout         => 20,
         doSSL           => 'starttls',
         SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_NONE,
-    ) or die "Could not connect to $opts{'outbound_server'}\n$@\n";
+    ) or die "Could not connect to $opts{'outbound_server'}:\n$@\n";
 
     $smtp->auth( $opts{'email_auth_user'}, $opts{'email_auth_pass'} )
-      or die "Couldn't send email: ", $smtp->message();
+      or die "Couldn't send email:\n" . $smtp->message();
     $smtp->mail( $opts{'email_auth_user'} );
     $smtp->to( $opts{'email_addr'} )
-      or die "Couldn't send email: ", $smtp->message();
+      or die "Couldn't send email:\n" . $smtp->message();
     $smtp->data();
     $smtp->datasend("From: $opts{'email_auth_user'}\n");
     $smtp->datasend("To: $opts{'email_addr'}\n");
@@ -174,8 +174,7 @@ sub get_zone_data {
     $hostname .= ".$domain.";
 
     my $xml = XML::Simple->new;
-    my $request =
-      HTTP::Request->new( GET =>
+    my $request = HTTP::Request->new( GET =>
 "https://$opts{'cpanel_domain'}:2083/xml-api/cpanel?cpanel_xmlapi_module=ZoneEdit&cpanel_xmlapi_func=fetchzone&domain=$domain"
       );
     $request->header( Authorization => $auth );
@@ -186,15 +185,14 @@ sub get_zone_data {
     if ( !defined $zone ) {
         $error = 1;
         output(
-"Couldn't connect to '$opts{'cpanel_domain'}' to fetch zone contents for $domain\nPlease ensure 'cpanel_domain', 'cpanel_user', and 'cpanel_pass' are set correctly.\n"
+"Couldn't connect to '$opts{'cpanel_domain'}' to fetch zone contents for $domain:\nPlease ensure 'cpanel_domain' is set correctly.\n"
         );
-        output( $response->content );
         exit(1);
     }
 
     # Assuming we find the zone, iterate over it and find the $hostname record
     my ( $record_number, $address, $found_hostname );
-    if ( $zone->{'data'}->{'status'} eq '1' ) {
+    if ( exists $zone->{'data'}->{'status'} && $zone->{'data'}->{'status'} eq '1' ) {
         my $count = @{ $zone->{'data'}->{'record'} };
         my $item  = 0;
         while ( $item <= $count ) {
@@ -210,12 +208,14 @@ sub get_zone_data {
         }
     }
     else {
-        output("Couldn't fetch zone for $domain.\n$zone->{'event'}->{'data'}->{'statusmsg;'}\n");
+        $error = 1;
+        output( "Couldn't fetch zone for $domain:\n$zone->{'error'}\nPlease ensure 'domain', 'cpanel_user', and 'cpanel_pass' are set correctly.");
         exit(1);
     }
 
     if ( !$found_hostname ) {
-        output("No A record present for $hostname, please verify it exists in the cPanel zonefile!\n");
+        $error = 1;
+        output("No A record was found for $hostname\n");
         exit(1);
     }
     return ( $record_number, $address );
@@ -240,7 +240,10 @@ sub get_external_ip {
     #check for connectivity
     #no need to run any further if connection out is dead
     my $alive = ping( 'host' => $opts{'check_host'} );
-    exit(1) if !$alive;
+    if (!$alive) {
+        print "Can't ping $opts{'check_host'}, it's either down or there's no internet connection.\n";
+        exit(1);
+    }
 
     #grab detetected IP address
     my $url = 'http://go.cpanel.net/myip';
@@ -248,7 +251,8 @@ sub get_external_ip {
     if ( !defined $opts{'ip'} ) {
         $ip = get($url);
         if ( !$validator->is_ipv4($ip) ) {
-            die "'$url' didn't return an IP address:\n" . "$ip\n";
+            output( "'$url' didn't return an IP address:\n" . "$ip\n" );
+            exit(1);
         }
         chomp $ip;
         if ( !$ip ) {
@@ -272,7 +276,7 @@ sub get_external_ip {
 
 =head1 VERSION
 
- 0.8.7
+ 0.8.8
 
 =cut
 

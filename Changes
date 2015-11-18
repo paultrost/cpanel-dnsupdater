@@ -1,5 +1,10 @@
 Revision history for cpanel-dnsupdater.pl
 
+0.88	2015-11-18 
+	Clarified some output messages
+	Standardized any errors when trying to update record to exit 1 if there's an error
+	Bad cpanel username/pass will generate correct email now
+
 0.87	2015-11-16
 	Added end of world warning before exit 255	
 	Changed output msg after failed API connect to not include cPanel account information
