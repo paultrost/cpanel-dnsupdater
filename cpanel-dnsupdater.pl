@@ -33,6 +33,7 @@ GetOptions(
     'domain=s' => \$opts{'domain'},
     'host=s'   => \$opts{'host'},
     'ip=s'     => \$opts{'ip'},
+    'ttl=s'    => \$opts{'ttl'},
 
     # cPanel connection parameters
     'cpanel_user=s'   => \$opts{'cpanel_user'},
@@ -226,7 +227,7 @@ sub set_host_ip {
     my $xml = XML::Simple->new;
     my $request =
       HTTP::Request->new( GET =>
-"https://$opts{'cpanel_domain'}:2083/xml-api/cpanel?cpanel_xmlapi_module=ZoneEdit&cpanel_xmlapi_func=edit_zone_record&domain=$domain&line=$line_number&address=$newip"
+"https://$opts{'cpanel_domain'}:2083/xml-api/cpanel?cpanel_xmlapi_module=ZoneEdit&cpanel_xmlapi_func=edit_zone_record&domain=$domain&line=$line_number&address=$newip&ttl=$opts{'ttl'}"
       );
     $request->header( Authorization => $auth );
     my $response   = $ua->request($request);
@@ -276,7 +277,7 @@ sub get_external_ip {
 
 =head1 VERSION
 
- 0.8.8
+ 0.8.9
 
 =cut
 
@@ -317,6 +318,7 @@ sub get_external_ip {
   --outbound_server Server to send mail through
   --helo            Change the HELO that is sent to the outbound server, this setting defaults to the current hostname
   --config_file     Specify the location of a configuration file (defaults to ~/.cpaneldyndns)
+  --ttl             Positive integer to set record TTL
 
 =head2 Using a Config File (~/.cpaneldyndns)
 
@@ -336,13 +338,13 @@ sub get_external_ip {
 
 =head1 AUTHOR
 
- Paul Trost <ptrost@cpanel.org>
+ Paul Trost <ptrost@cpan.org>
  Original code by Stefan Gofferje - http://stefan.gofferje.net/
 
 =cut
 
 =head1 LICENSE AND COPYRIGHT
 
- Copyright 2012, 2013, 2014, 2015.
+ Copyright 2012, 2013, 2014, 2015, 2016.
  This script is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License v2, or at your option any later version.
  <http://gnu.org/licenses/gpl.html>
